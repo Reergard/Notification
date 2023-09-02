@@ -1,0 +1,58 @@
+<div id="notification-container">
+    <!-- Уведомления будут отображаться здесь -->
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Функция для получения уведомлений с сервера и обновления страницы
+    function getNotifications() {
+        console.log('Вызвана функция getNotifications()'); // Вывод в консоль
+
+        // Получите токен из локального хранилища
+        const token = localStorage.getItem('jwt_token');
+        console.log('Токен из локального хранилища:', token); // Вывод в консоль
+
+        // Проверьте, что токен был успешно получен
+        if (token) {
+            // Подставьте токен в заголовок запроса
+            const headers = {
+                'Authorization': `Token ${token}`
+            };
+            console.log('Заголовки запроса:', headers); // Вывод в консоль
+
+            $.ajax({
+                url: '/api/notifications/',  // Замените на ваш URL API
+                type: 'GET',
+                dataType: 'json',
+                headers: headers,  // Используйте токен для аутентификации
+                success: function (data) {
+                    console.log('Успешно получены уведомления:', data); // Вывод в консоль
+
+                    // Обработка полученных уведомлений
+                    const notificationContainer = document.getElementById('notification-container');
+                    notificationContainer.innerHTML = '';  // Очистка контейнера
+                    data.forEach(function (notification) {
+                        const message = notification.message;
+                        const created_at = notification.created_at;
+                        const is_read = notification.is_read ? ' (Прочитано)' : '';
+                        const notificationHTML = `<div>${message}${is_read}<br>Дата: ${created_at}</div>`;
+                        notificationContainer.innerHTML += notificationHTML;
+                    });
+                },
+                error: function () {
+                    console.error('Ошибка при получении уведомлений');
+                }
+            });
+        } else {
+            console.error('Токен не найден в локальном хранилище');
+        }
+    }
+
+    // Вызывать функцию обновления уведомлений через определенный интервал времени
+    setInterval(function () {
+        console.log('Вызвана функция setInterval()'); // Вывод в консоль
+        getNotifications();
+    }, 5000);  // Обновление каждые 5 секунд (измените по необходимости)
+
+    // Вызвать функцию обновления уведомлений при загрузке страницы
+    getNotifications();
+</script>
